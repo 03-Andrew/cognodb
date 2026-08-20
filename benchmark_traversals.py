@@ -6,15 +6,38 @@ from benchmark_utils import (
     print_table,
 )
 
-ITERATIONS = 150
+ITERATIONS = 100
 WARMUP_RUNS = 25
+
+
+class NodeSequenceProvider:
+    """Provides the exact same sequence of start nodes across all benchmark runs."""
+    def __init__(self, nodes):
+        self.nodes = nodes
+        self.cursor = 0
+
+    def reset(self):
+        self.cursor = 0
+
+    def __call__(self):
+        node = self.nodes[self.cursor % len(self.nodes)]
+        self.cursor += 1
+        return {"id": node}
 
 
 def run_traversal_benchmark():
     with get_driver() as driver:
         print("Connected. Sampling candidate start nodes...")
-        node_pool = sample_start_nodes(driver, limit=500)
-        print(f"Sampled {len(node_pool)} starting nodes with outgoing citations.\n")
+        raw_pool = sample_start_nodes(driver, limit=500)
+        
+        # Partition raw pool into separate warmup and evaluation sets (seed=42 for reproducibility)
+        rng = random.Random(42)
+        shuffled = list(raw_pool)
+        rng.shuffle(shuffled)
+
+        warmup_nodes = shuffled[:WARMUP_RUNS]
+        eval_nodes = shuffled[WARMUP_RUNS : WARMUP_RUNS + ITERATIONS]
+        print(f"Prepared {len(warmup_nodes)} dedicated warmup nodes and {len(eval_nodes)} distinct evaluation start nodes.\n")
 
         workloads = [
             (
@@ -31,19 +54,29 @@ def run_traversal_benchmark():
             ),
         ]
 
+        warmup_provider = NodeSequenceProvider(warmup_nodes)
+        eval_provider = NodeSequenceProvider(eval_nodes)
+
         rows = []
         with driver.session() as session:
             for label, query in workloads:
-                print(f"Benchmarking: {label} ({ITERATIONS} iterations)...")
+                print(f"Benchmarking: {label} ({len(eval_nodes)} iterations)...")
+                # Reset providers so each hop depth runs on the exact same separate warmup and eval sequence
+                warmup_provider.reset()
+                eval_provider.reset()
                 stats = measure_query_latency(
                     session=session,
                     query=query,
-                    param_fn=lambda: {"id": random.choice(node_pool)},
+                    param_fn=eval_provider,
+                    warmup_param_fn=warmup_provider,
                     warmup_runs=WARMUP_RUNS,
-                    iterations=ITERATIONS,
+                    iterations=len(eval_nodes),
+                    extract_result=True,
                 )
                 rows.append([
                     label,
+                    f"{stats['avg_count']:,.1f}",
+                    f"{stats['cold']:.2f}",
                     f"{stats['p50']:.2f}",
                     f"{stats['p95']:.2f}",
                     f"{stats['avg']:.2f}",
@@ -51,7 +84,7 @@ def run_traversal_benchmark():
 
         print_table(
             title="TRAVERSAL LATENCY BENCHMARK REPORT",
-            headers=["Workload", "p50 (ms)", "p95 (ms)", "Avg (ms)"],
+            headers=["Workload", "Avg Result Count", "Cold (ms)", "p50 (ms)", "p95 (ms)", "Avg (ms)"],
             rows=rows,
         )
 

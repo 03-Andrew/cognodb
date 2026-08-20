@@ -54,32 +54,59 @@ def sample_any_nodes(driver, limit=500):
     return nodes
 
 
-def measure_query_latency(session, query, param_fn=None, warmup_runs=25, iterations=150):
+def measure_query_latency(session, query, param_fn=None, warmup_param_fn=None, warmup_runs=25, iterations=100, extract_result=False):
     """
-    Runs warmup iterations, followed by timed measurement iterations.
-    param_fn: Callable returning parameter dict for each iteration, or None if static.
+    Runs warmup iterations (capturing cold-start latency on run #1),
+    followed by timed steady-state measurement iterations.
+    If extract_result is True, consumes single record value to calculate avg_count.
     """
-    # 1. Warmup
-    for _ in range(warmup_runs):
-        params = param_fn() if param_fn else {}
-        session.run(query, **params).consume()
+    cold_latency = None
+    w_fn = warmup_param_fn or param_fn
 
-    # 2. Measurement
+    # 1. Warmup (captures cold-start on the very first execution)
+    for i in range(warmup_runs):
+        params = w_fn() if w_fn else {}
+        if i == 0:
+            t0 = time.perf_counter()
+            if extract_result:
+                session.run(query, **params).single()
+            else:
+                session.run(query, **params).consume()
+            t1 = time.perf_counter()
+            cold_latency = (t1 - t0) * 1000.0
+        else:
+            if extract_result:
+                session.run(query, **params).single()
+            else:
+                session.run(query, **params).consume()
+
+    # 2. Steady-state Measurement
     latencies = []
+    result_values = []
     for _ in range(iterations):
         params = param_fn() if param_fn else {}
         t0 = time.perf_counter()
-        session.run(query, **params).consume()
+        res = session.run(query, **params)
+        if extract_result:
+            rec = res.single()
+            val = rec[0] if rec else 0
+            result_values.append(val)
+        else:
+            res.consume()
         t1 = time.perf_counter()
         latencies.append((t1 - t0) * 1000.0)  # Convert seconds to ms
 
+    avg_result = statistics.mean(result_values) if result_values else 0.0
+
     return {
+        "cold": cold_latency if cold_latency is not None else 0.0,
         "p50": calculate_percentile(latencies, 50),
         "p95": calculate_percentile(latencies, 95),
         "p99": calculate_percentile(latencies, 99),
         "avg": statistics.mean(latencies),
         "min": min(latencies),
         "max": max(latencies),
+        "avg_count": avg_result,
         "raw": latencies
     }
 
