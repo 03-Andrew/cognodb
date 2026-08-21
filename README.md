@@ -4,10 +4,10 @@ An automated, reproducible benchmark suite evaluating and comparing **Neo4j**, *
 
 ---
 
-## 📊 Complete Benchmark Summary & Results
+## Complete Benchmark Summary & Results
 
 > **For the full comparative analysis, charts, and detailed evaluation, refer to:**  
-> 👉 **[`MD files/summary.md`](./MD%20files/summary.md)**
+> **[`MD files/summary.md`](./MD%20files/summary.md)**
 
 ### Detailed Per-Engine Reports:
 * [**Neo4j Benchmark Report**](./MD%20files/neo4j.md)
@@ -19,7 +19,7 @@ An automated, reproducible benchmark suite evaluating and comparing **Neo4j**, *
 
 ---
 
-## ⚙️ Benchmark Environment
+## Benchmark Environment
 
 * **Deployment & Orchestration:** Docker Compose (`docker-compose`)
 * **Host Platform:** AWS EC2 `t3.small` (15 GB EBS storage, `us-east-1`)
@@ -30,14 +30,14 @@ An automated, reproducible benchmark suite evaluating and comparing **Neo4j**, *
 
 ---
 
-## ⚡ Network Latency Insight (Local vs. Remote EC2)
+## Network Latency Insight (Local vs. Remote EC2)
 
 * **Local Machine (Localhost):** In-memory query execution takes **0.5 ms to 2.0 ms** (Memgraph: 0.53 ms lookup, Neo4j: 1.89 ms lookup) with throughput up to **814 QPS**.
 * **Remote EC2 (`us-east-1`):** The ~250 ms baseline in remote tests is physical network Round-Trip Time (RTT) across the internet, demonstrating that database query execution remains ultra-fast while network transit dominates remote latency.
 
 ---
 
-## 🚀 Quickstart & Execution
+## Quickstart & Execution
 
 1. **Start the target database container:**
    ```bash
@@ -65,7 +65,7 @@ An automated, reproducible benchmark suite evaluating and comparing **Neo4j**, *
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 ├── README.md                      # Overview & quickstart guide
