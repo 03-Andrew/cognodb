@@ -68,7 +68,23 @@ This report evaluates and compares the performance, latency characteristics, thr
 
 ---
 
-## 3. Resource Footprint & 256 MB RAM Constraint Analysis
+## 3. Network Latency Impact: Local vs. Remote EC2 (`us-east-1`)
+
+A crucial finding from comparing local runs against remote EC2 runs is the dramatic impact of **Wide-Area Network (WAN) latency**:
+
+| Benchmark Metric | Local Execution (Zero Network Overhead) | Remote EC2 `us-east-1` (Cross-Internet) | Primary Bottleneck |
+| :--- | :---: | :---: | :---: |
+| **Point Lookup (p50)** | **0.53 ms** (Memgraph) / **1.89 ms** (Neo4j) | **260–275 ms** | Network Round-Trip Time (RTT) |
+| **1-Hop Traversal (p50)** | **0.62 ms** (Memgraph) / **2.03 ms** (Neo4j) | **252–260 ms** | Network Round-Trip Time (RTT) |
+| **Total Ingest Time** | **7.85s** (Memgraph, 48.5k rels/s) | **48–61s** (~7–8k rels/s) | Network batch roundtrips |
+| **Mixed Workload (40 clients)**| **814 QPS** (p50: 24 ms) | **145 QPS** (p50: 265 ms) | Network socket queueing |
+
+### Key Observation:
+* **Pure Engine Execution Time:** The graph query execution itself takes only **0.5 ms to 2 ms** in-memory.
+* **Network Overhead:** The ~250 ms baseline observed across all remote EC2 benchmarks represents the physical network transit latency between the client machine and the AWS `us-east-1` datacenter.
+---
+
+## 4. Resource Footprint & 256 MB RAM Constraint Analysis
 
 ```
 +--------------------------------------------------------------------------------+
