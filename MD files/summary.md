@@ -18,7 +18,6 @@ This report evaluates and compares the performance, latency characteristics, thr
 | Category / Workload Metric | Neo4j (Default ~586.8 MB) | Memgraph (256 MB Cap) | FalkorDB (256 MB Cap) | ArcadeDB (256 MB Cap) | CognoDB (Cloud) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Engine Runtime / Architecture** | Java (JVM) | C++ (In-Memory) | C / Redis Engine | Java (JVM / Hybrid) | Distributed / Native |
-| **Memory Footprint Observed** | **586.8 MiB** | **163.98 MiB** | **~120 MiB** | **~245 MiB (OOM Risk)** | Managed |
 | **Total Ingest Time (Wall-Clock)** | 61.59s | 52.03s | **48.24s** | 113.16s | 52.93s |
 | **Node Ingestion Rate** | 3,532.5 nodes/s | 7,357.0 nodes/s | 7,277.7 nodes/s | 2,053.3 nodes/s | **8,904.3 nodes/s** |
 | **Edge Ingestion Rate** | 6,651.0 rels/s | 7,377.0 rels/s | **8,010.7 rels/s** | 3,545.1 rels/s | 7,139.5 rels/s |
