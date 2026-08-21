@@ -23,10 +23,10 @@ An automated, reproducible benchmark suite evaluating and comparing **Neo4j**, *
 
 * **Deployment & Orchestration:** Docker Compose (`docker-compose`)
 * **Host Platform:** AWS EC2 `t3.small` (15 GB EBS storage, `us-east-1`)
-* **Memory Limits:**
-  * **256 MB RAM cap** (`mem_limit: 256m`) for low-memory container testing (**Memgraph**, **FalkorDB**, **ArcadeDB**).
-  * **1.8 GB RAM** allocated for **Neo4j** (default capacity, as 256 MB was insufficient for JVM runtime boot and execution).
-  * **CognoDB** evaluated as a managed cloud instance.
+* **Memory Limits & Fairness Note:**
+  * **256 MB RAM cap** (`mem_limit: 256m`) was strictly enforced in Docker Compose for **Memgraph**, **FalkorDB**, and **ArcadeDB**.
+  * **Neo4j** was run **without a memory cap in `docker-compose.neo4j.yml`** because its container repeatedly died under the 256 MB constraint. `docker stats` reported **1.861 GiB total host RAM**, with Neo4j consuming **345.6 MiB resting / 586.8 MiB peak**. *(Note: This comparison is not 100% apples-to-apples in resource allocation).*
+  * **CognoDB** was evaluated as a managed cloud instance.
 
 ---
 

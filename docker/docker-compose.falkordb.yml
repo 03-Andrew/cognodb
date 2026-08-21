@@ -2,15 +2,19 @@ services:
   falkordb:
     image: falkordb/falkordb:latest
     container_name: falkordb
+
     ports:
       - "6379:6379"
-      - "7687:7687"
       - "3000:3000"
+
     environment:
-      REDIS_ARGS: "--requirepass falkordb"
+      - REDIS_ARGS=--requirepass password
+      - FALKORDB_ARGS=TIMEOUT_DEFAULT 30000 TIMEOUT_MAX 30000
+    cpus: 0.5
+    mem_limit: 256m
 
-      FALKORDB_ARGS: "TIMEOUT 30000"
+    storage_opt:
+      size: 1G
+
+    restart: unless-stopped
     
-
-volumes:
-  falkordb_data:

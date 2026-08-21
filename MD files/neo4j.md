@@ -1,8 +1,10 @@
 ## Platform Configuration
-* **Deployment:** Docker Compose (`docker-compose`)
+* **Deployment:** Docker Compose (`docker-compose`, default configuration with no `mem_limit` cap)
 * **Environment:** AWS EC2 `t3.small` (15 GB storage, `us-east-1`)
 * **Engine / Version:** Neo4j Community Kernel 2026.07.1
-* **Memory Allocation:** **1.8 GB RAM** (Default configuration in docker-compose, as 256 MB was insufficient for JVM boot and execution)
+* **Memory Footprint (`docker stats`):**
+  * **Observed Usage:** **345.6 MiB resting** / **586.8 MiB peak**
+  * **Available Host Memory Reported:** **1.861 GiB**
 * **Dataset:** `cit-HepTh` (27,770 nodes, 352,807 edges)
 
 ---
@@ -54,3 +56,10 @@ Verified Database State    : 27,770 nodes | 352,807 relationships
 | **10 Clients** | 36.09 | 263.59 | 276.83 | 275.76 |
 | **20 Clients** | 73.30 | 263.09 | 279.41 | 270.95 |
 | **40 Clients** | 146.89 | 263.84 | 277.12 | 270.27 |
+
+---
+
+## 6. Developer Experience & Setup Notes
+* **Container Crashing Under Low Memory:** When attempting to enforce the strict 256 MB RAM cap (`mem_limit: 256m`) on Neo4j, the Docker container repeatedly died during engine initialization and query warmup due to the JVM exceeding the memory boundary.
+* **Transition to Default Docker Compose:** Because the container kept dying under low memory limits, the setup was switched to the default Docker Compose configuration using the full instance memory allocation (**1.8 GB RAM**), which stabilized the container and allowed all benchmark stages to complete successfully.
+* **Fairness & Asymmetric Constraint Caveat:** *Because Neo4j was allocated 1.8 GB RAM while Memgraph, FalkorDB, and ArcadeDB were capped at 256 MB RAM, this comparison is not 100% apples-to-apples in hardware constraints. The results reflect that Neo4j achieves competitive execution speeds only when granted substantially more baseline memory.*

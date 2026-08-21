@@ -8,8 +8,8 @@ This report evaluates and compares the performance, latency characteristics, thr
 * **Storage:** 15 GB EBS Storage
 * **Region:** `us-east-1`
 
-> **Note on Memory Configuration:**  
-> Databases were containerized and managed via **Docker Compose**. A **256 MB RAM cap** (`mem_limit: 256m`) was enforced for Memgraph, FalkorDB, and ArcadeDB. For **Neo4j**, 256 MB was insufficient for JVM runtime startup and query execution, so **Neo4j was allocated 1.8 GB RAM** via Docker Compose. CognoDB ran as a managed cloud instance.
+> **Important Fairness & Constraint Caveat:**  
+> This benchmark is **not a 100% apples-to-apples comparison** in terms of resource constraints. While **Memgraph**, **FalkorDB**, and **ArcadeDB** had a strict **256 MB RAM limit** configured in Docker Compose (`mem_limit: 256m`), **Neo4j** could not run with that limit (the container repeatedly crashed). As a result, **Neo4j was run with no memory cap in `docker-compose.yml`**, giving it unconstrained access to the host's memory (which `docker stats` reported as **1.86 GiB available**, with Neo4j utilizing **345.6 MiB resting / 586.8 MiB peak**). This highlights that while Neo4j achieves competitive aggregation and traversal speeds, it required significantly more baseline memory than the 256 MB cap to run. CognoDB was evaluated as a remote managed cloud service.
 
 ---
 
@@ -104,16 +104,6 @@ This report evaluates and compares the performance, latency characteristics, thr
    * Default query timeouts in Redis/FalkorDB (1,000 ms) cause complex graph aggregations to fail with timeouts unless increased via `GRAPH.QUERY_TIMEOUT 30000`.
 3. **Memgraph (Explicit Indexing vs. Unique Constraints):**
    * Unlike Neo4j, declaring a unique constraint does not automatically build an in-memory index for edge lookups. Explicitly running `CREATE INDEX ON :Paper(id);` is mandatory to reduce edge loading times from ~35s/batch down to sub-second commits.
-4. **Neo4j (JVM Baseline Footprint):**
-   * Neo4j requires a minimum baseline of ~350–580 MB RAM for background threads and page cache, requiring standard instance capacity (1.8 GB) on EC2.
-
----
-
-## 5. Key Recommendations
-
-1. **For Embedded / Edge / Low-Memory (<512 MB RAM) Environments:**  
-   **Memgraph** and **FalkorDB** are the top choices due to minimal native runtime overhead, near-instantaneous indexing, and stable low-memory execution.
-2. **For Complex Cypher Aggregations & Enterprise Graph Analytics:**  
-   **Neo4j** and **Memgraph** provide the most optimized execution planners for deep path aggregations and group-by calculations.
-3. **For Managed Cloud Scale-Out:**  
-   **CognoDB** offers high node ingestion rates and lowest point lookup/traversal p50 latencies without local resource tuning overhead.
+4. **Neo4j (JVM Baseline Footprint & Container Stability):**
+   * Attempting to enforce a 256 MB RAM limit caused the Neo4j Docker container to repeatedly die during engine boot and query warmup.
+   * Switching to the default Docker Compose configuration (**1.8 GB RAM**) was necessary to keep the container alive and stable throughout the benchmark suite.
