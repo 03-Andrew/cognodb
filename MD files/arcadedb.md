@@ -4,7 +4,7 @@
 * **Deployment:** Docker Compose (`docker-compose`)
 * **Environment:** AWS EC2 `t3.small` (15 GB storage, `us-east-1`)
 * **Engine / Version:** ArcadeDB 5.26.0 (Community)
-* **Memory Setting:** 256 MB RAM Cap (`mem_limit: 256m`, JVM `-Xms64M -Xmx110M`). *Note: Experienced memory limits under continuous multi-phase pipeline execution during step 5/6, but succeeded when run independently on a clean container.*
+* **Memory Setting:** 256 MB RAM Cap (`mem_limit: 256m`, JVM `-Xms96M -Xmx128M`). *Note: Experienced memory limits under continuous multi-phase pipeline execution during step 5/6, but succeeded when run independently on a clean container.*
 * **Dataset:** `cit-HepTh` (27,770 nodes, 352,807 edges)
 
 ---
@@ -49,7 +49,7 @@ Verified Database State    : 27,770 nodes | 352,807 relationships
 | Degree Distribution (Histogram) | 5,806.88 | 2,000.79 | 2,963.92 | 2,065.03 | OOM in pipeline; passed in isolation |
 
 ### OOM Crash Trace (from `errors.log`)
-When executing full-graph edge traversals and grouping under the 256 MB container limit (`-Xms64M -Xmx110M`), ArcadeDB exhausted the JVM heap space:
+When executing full-graph edge traversals and grouping under the 256 MB container limit (`-Xms96M -Xmx128M`), ArcadeDB exhausted the JVM heap space:
 
 ```text
 java.lang.OutOfMemoryError: Java heap space
@@ -76,6 +76,13 @@ arcadedb-1  |   at com.arcadedb.graph.ImmutableEdge.getOutVertex(ImmutableEdge.j
 ## 5. Concurrent Mixed Workload (80% Read / 20% Write)
 | Concurrency Level | Sustained QPS | p50 Latency (ms) | p95 Latency (ms) | Avg Latency (ms) |
 | :--- | :---: | :---: | :---: | :---: |
-| **10 Clients** | 34.68 | 262.11 | 280.95 | 278.40 |
-| **20 Clients** | 69.15 | 263.15 | 291.40 | 275.80 |
-| **40 Clients** | 135.20 | 264.80 | 312.50 | 276.10 |
+| **10 Clients** | 34.68 | 274.81 | 300.85 | 286.78 |
+| **20 Clients** | 71.16 | 271.28 | 285.60 | 279.45 |
+| **40 Clients** | 51.03 | 271.65 | 1064.82 | 777.92 |
+
+---
+
+## 6. Developer Experience & Setup Notes
+* **Schema Definition Language:** Initial attempts to build the database schema using Cypher failed. ArcadeDB requires **SQL via HTTP** (`CREATE VERTEX TYPE Paper`, `CREATE PROPERTY Paper.id STRING`, `CREATE INDEX ON Paper (id) UNIQUE`, `CREATE EDGE TYPE CITES`) to set up vertex/edge types and constraints before using Cypher over Bolt for ingestion and queries.
+* **JVM Heap & Resource Constraints:** Under the 256 MB RAM cap, running ArcadeDB (Java) required allocating roughly half the memory to the JVM heap (`-Xms96M -Xmx128M`). Without this tuning, the container crashed immediately due to heap OOM during ingestion.
+* **Aggregation Pipeline Failure & Recovery:** During continuous pipeline execution, the heavy aggregation step exhausted memory and failed. Running the aggregation test independently on a clean container allowed it to complete successfully.

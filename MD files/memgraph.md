@@ -64,3 +64,9 @@ CREATE INDEX ON :Paper(id);
 
 2. **Resulting Throughput:**
    - Total relationship load time dropped to **7.26 seconds** for all **352,807 relationships** (~48,585 rels/sec).
+
+---
+
+## 3. Developer Experience & Setup Notes
+* **Indexing Distinction (Memgraph vs. Neo4j):** Memgraph requires explicit `CREATE INDEX ON :Paper(id);` execution. Unlike Neo4j, where creating a `UNIQUE CONSTRAINT` automatically provisions a supporting index, Memgraph's edge ingestion was initially slow (~35s per batch of 2,500 edges) until the index was explicitly added.
+* **Local vs. EC2 Environment Behavior:** When running locally under tight resource caps, Memgraph peaked in memory during full-graph aggregations and triggered local OOM; however, on the AWS EC2 `t3.small` instance, execution ran smoothly with a steady memory footprint of 163.98 MiB.

@@ -83,7 +83,7 @@ This report evaluates and compares the performance, latency characteristics, thr
 1. **Native Engines (Memgraph, FalkorDB):**
    * Stored the entire active working set in **163.98 MiB** (Memgraph peak) and **~120 MiB** (FalkorDB), leaving ample buffer inside the 256 MB limit without GC pauses or process terminations.
 2. **JVM-Based Engines (ArcadeDB, Neo4j):**
-   * **Neo4j:** The base JVM heap + Metaspace + Page Cache requires **~500 MB+** just for stable runtime operation. Running Neo4j under a strict 256 MB limit fails during engine bootstrap.
+   * **Neo4j:** The base JVM heap + Metaspace + Page Cache requires requirements exceeded 25gmb just for stable runtime operation. Running Neo4j under a strict 256 MB limit fails during engine bootstrap.
    * **ArcadeDB:** Configurable to low-RAM profiles (`-Xmx110M`), but multi-stage query pipelines with concurrent connections easily push cumulative native thread and heap memory past 256 MB. During heavy edge traversal aggregations, the engine triggers an OOM heap exhaustion:
      ```text
      java.lang.OutOfMemoryError: Java heap space
@@ -94,7 +94,22 @@ This report evaluates and compares the performance, latency characteristics, thr
 
 ---
 
-## 4. Key Recommendations
+## 4. Key Developer Insights & Platform Nuances
+
+1. **ArcadeDB (Schema Language & Memory Allocation):**
+   * Schema setup cannot be performed in Cypher; it requires **SQL via HTTP** (`CREATE VERTEX TYPE`, `CREATE EDGE TYPE`, `CREATE INDEX`).
+   * Under a 256 MB RAM limit, half the memory must be strictly partitioned to the JVM heap (`-Xms64M -Xmx110M`) to prevent immediate heap exhaustion during batch ingestion.
+2. **FalkorDB (Protocol Choice & Query Timeout):**
+   * Connecting via the native Redis port with the `falkordb` Python library was significantly more reliable than the Bolt protocol wrapper.
+   * Default query timeouts in Redis/FalkorDB (1,000 ms) cause complex graph aggregations to fail with timeouts unless increased via `GRAPH.QUERY_TIMEOUT 30000`.
+3. **Memgraph (Explicit Indexing vs. Unique Constraints):**
+   * Unlike Neo4j, declaring a unique constraint does not automatically build an in-memory index for edge lookups. Explicitly running `CREATE INDEX ON :Paper(id);` is mandatory to reduce edge loading times from ~35s/batch down to sub-second commits.
+4. **Neo4j (JVM Baseline Footprint):**
+   * Neo4j requires a minimum baseline of ~350–580 MB RAM for background threads and page cache, requiring standard instance capacity (1.8 GB) on EC2.
+
+---
+
+## 5. Key Recommendations
 
 1. **For Embedded / Edge / Low-Memory (<512 MB RAM) Environments:**  
    **Memgraph** and **FalkorDB** are the top choices due to minimal native runtime overhead, near-instantaneous indexing, and stable low-memory execution.

@@ -56,3 +56,10 @@ Verified Database State    : 27,770 nodes | 352,807 relationships
 | **10 Clients** | 35.14 | 261.34 | 310.57 | 283.39 |
 | **20 Clients** | 72.97 | 260.86 | 272.02 | 272.23 |
 | **40 Clients** | 142.39 | 261.53 | 311.02 | 278.86 |
+
+---
+
+## 6. Developer Experience & Setup Notes
+* **Bolt Protocol vs. Native Redis Driver:** The documented command to run FalkorDB with the Bolt protocol had stability issues locally and on the EC2 instance. The benchmark was therefore transitioned to the native Redis port using the `falkordb` Python library, allowing full Cypher query execution without protocol translation layers.
+* **Query Timeout Configuration:** Initial aggregation runs failed with `Query timed out`. While initially suspected to be a 256 MB memory limit, memory usage was well within limits (~120 MiB). The root cause was FalkorDB's default query execution timeout (1,000 ms). Setting `GRAPH.QUERY_TIMEOUT 30000` (30 seconds) in Docker Compose resolved all timeouts.
+* **Cloud vs. EC2 Consistency:** Running the benchmark against FalkorDB Cloud Free Tier (hosted in `us-east-1`) produced nearly identical latency and throughput metrics as the EC2 containerized instance.
