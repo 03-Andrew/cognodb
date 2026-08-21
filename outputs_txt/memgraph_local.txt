@@ -1,0 +1,112 @@
+============================================================
+DATA LOADING METRICS (SECTION 5.2 REPORT)
+============================================================
+Total Wall-Clock Load Time : 7.85 seconds
+Node Ingest Throughput     : 64,436.92 nodes/sec (27,770 nodes in 0.43s)
+Relationship Ingest Rate   : 48,585.19 rels/sec (352,807 edges in 7.26s)
+Verified Database State    : 27,770 nodes | 352,807 relationships
+============================================================
+
+-----------------------------------------------------------------------------
+
+====================================================
+         TRAVERSAL LATENCY BENCHMARK REPORT         
+====================================================
+| Workload        | p50 (ms) | p95 (ms) | Avg (ms) |
+----------------------------------------------------
+| 1-Hop Traversal |     0.62 |     1.32 |     1.44 |
+| 2-Hop Traversal |     0.57 |     1.20 |     1.36 |
+| 3-Hop Traversal |     0.80 |     7.18 |     2.91 |
+====================================================
+
+-----------------------------------------------------------------------------
+
+===============================================================
+                LOOKUP LATENCY BENCHMARK REPORT                
+===============================================================
+| Workload                   | p50 (ms) | p95 (ms) | Avg (ms) |
+---------------------------------------------------------------
+| Point Lookup (:Paper {id}) |     0.53 |     0.85 |     0.92 |
+| Indexed / Filtered Lookup  |     0.50 |     0.85 |     0.93 |
+===============================================================
+
+-----------------------------------------------------------------------------
+
+============================================================================================
+                          AGGREGATION & GROUP-BY BENCHMARK REPORT                           
+============================================================================================
+| Workload                                                | p50 (ms) | p95 (ms) | Avg (ms) |
+--------------------------------------------------------------------------------------------
+| Label Count (All :Paper) Iteration: 100, Warmup: 25     |     2.99 |    49.74 |     6.97 |
+| Rel Count (All :CITES) Iteration: 100, Warmup: 25       |    72.76 |    83.34 |    56.89 |
+| Group-By In-Degree (Top Cited) Iteration: 2, Warmup: 1  |   290.70 |   290.70 |   261.68 |
+| Degree Distribution (Histogram) Iteration: 3, Warmup: 1 |    52.59 |    55.44 |    53.29 |
+============================================================================================
+
+
+[Group-By In-Degree (Top Cited)] Per-iteration memory (post-warmup):
+  baseline before timed runs: memory_res=192.54MiB peak=192.54MiB
+  iter 1: 290.70ms | memory_res=213.48MiB | peak_memory_res=213.48MiB
+  iter 2: 232.66ms | memory_res=234.58MiB | peak_memory_res=234.58MiB
+
+
+[Degree Distribution (Histogram)] Per-iteration memory (post-warmup):
+  baseline before timed runs: memory_res=248.13MiB peak=248.13MiB
+  iter 1: 51.84ms | memory_res=248.75MiB | peak_memory_res=248.75MiB
+  iter 2: 52.59ms | memory_res=248.62MiB | peak_memory_res=248.75MiB
+  iter 3: 55.44ms | memory_res=248.62MiB | peak_memory_res=248.75MiB
+
+
+-----------------------------------------------------------------------------
+
+--- Testing: 10 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 11,447 queries (9,168 reads, 2,279 writes)
+Throughput : 569.90 queries/sec (QPS)
+Latency    : p50: 3.80 ms | p95: 82.58 ms | Avg: 17.54 ms
+
+--- Testing: 20 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 13,636 queries (10,880 reads, 2,756 writes)
+Throughput : 678.87 queries/sec (QPS)
+Latency    : p50: 8.52 ms | p95: 89.74 ms | Avg: 29.38 ms
+
+--- Testing: 40 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 16,357 queries (13,135 reads, 3,222 writes)
+Throughput : 814.06 queries/sec (QPS)
+Latency    : p50: 24.04 ms | p95: 100.47 ms | Avg: 49.07 ms
+
+================================================================
+        MIXED WORKLOAD BENCHMARK (80% READ / 20% WRITE)         
+================================================================
+| Concurrency | Sustained QPS | p50 (ms) | p95 (ms) | Avg (ms) |
+----------------------------------------------------------------
+| 10 clients  |        569.90 |     3.80 |    82.58 |    17.54 |
+| 20 clients  |        678.87 |     8.52 |    89.74 |    29.38 |
+| 40 clients  |        814.06 |    24.04 |   100.47 |    49.07 |
+================================================================
+
+-----------------------------------------------------------------------------
+
+=================================================================
+DATABASE FOOTPRINT & RESOURCE USAGE INSPECTION
+=================================================================
+/Users/Andrew/graphdb/venv/lib/python3.13/site-packages/neo4j/_sync/work/result.py:636: UserWarning: Expected a result with a single record, but found multiple.
+  warn(
+Platform / Engine Version : Memgraph 5.9.0 (community)
+Total Nodes Ingested      : 27,770 nodes (:Paper)
+Total Relationships       : 361,032 edges (:CITES)
+-----------------------------------------------------------------
+STORAGE & MEMORY INFO (SHOW STORAGE INFO):
+   • vm_max_map_count             : 262144
+   • memory_res                   : 195.40MiB
+   • peak_memory_res              : 218.58MiB
+   • disk_usage                   : 88.65MiB
+   • memory_tracked               : 89.41MiB
+   • memory_limit                 : 250.00MiB
+   • license_memory_limit         : unlimited
+   • query+graph_memory_tracked   : 89.41MiB
+   • vector_index_memory_tracked  : 0B
+   • global_isolation_level       : SNAPSHOT_ISOLATION
+   • session_isolation_level      : 
+   • next_session_isolation_level : 
+   • global_storage_mode          : IN_MEMORY_TRANSACTIONAL
+=================================================================

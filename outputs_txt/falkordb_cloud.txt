@@ -1,0 +1,104 @@
+######################################################################
+      STARTING FULL GRAPH DATABASE BENCHMARK SUITE
+######################################################################
+
+
+============================================================
+DATA LOADING METRICS (SECTION 5.2 REPORT)
+============================================================
+Total Wall-Clock Load Time : 48.32 seconds
+Node Ingest Throughput     : 6,970.50 nodes/sec (27,770 nodes in 3.98s)
+Relationship Ingest Rate   : 8,031.25 rels/sec (352,807 edges in 43.93s)
+Verified Database State    : 27,770 nodes | 352,807 relationships
+============================================================
+
+=================================================================
+DATABASE FOOTPRINT & RESOURCE USAGE INSPECTION
+=================================================================
+Platform / Engine Version : Unknown
+Total Nodes Ingested      : 27,770 nodes (:Paper)
+Total Relationships       : 352,807 edges (:CITES)
+-----------------------------------------------------------------
+STORAGE & MEMORY INFO (SHOW STORAGE INFO):
+   Could not retrieve storage info: errMsg: Invalid input 'H': expected SET or START line: 1, column: 2, offset: 1 errCtx: SHOW STORAGE INFO errCtxOffset: 1
+=================================================================
+Connected. Sampling candidate Paper IDs...
+Prepared 25 dedicated warmup IDs and 100 distinct evaluation IDs.
+
+Benchmarking: Point Lookup (100 iterations)...
+Benchmarking: Indexed/Filtered Range Lookup (100 iterations)...
+
+===========================================================================
+                      LOOKUP LATENCY BENCHMARK REPORT                      
+===========================================================================
+| Workload                   | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+---------------------------------------------------------------------------
+| Point Lookup (:Paper {id}) |    261.60 |   262.06 |   351.63 |   273.40 |
+| Indexed / Filtered Lookup  |    261.28 |   263.58 |   379.06 |   352.16 |
+===========================================================================
+
+[Indexed Properties on Platform]
+ - :Paper(id) -> Unique Constraint / Primary B-tree Index
+Connected. Sampling candidate start nodes...
+Prepared 25 dedicated warmup nodes and 100 distinct evaluation start nodes.
+
+Benchmarking: 1-Hop Traversal (100 iterations)...
+Benchmarking: 2-Hop Traversal (100 iterations)...
+Benchmarking: 3-Hop Traversal (100 iterations)...
+
+===================================================================================
+                         TRAVERSAL LATENCY BENCHMARK REPORT                        
+===================================================================================
+| Workload        | Avg Result Count | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+-----------------------------------------------------------------------------------
+| 1-Hop Traversal |             13.7 |    263.81 |   282.47 |   596.44 |   499.05 |
+| 2-Hop Traversal |            150.1 |    270.25 |   268.81 |   477.41 |   358.89 |
+| 3-Hop Traversal |            734.5 |    261.86 |   262.68 |   271.19 |   263.84 |
+===================================================================================
+Connected to database.
+
+Benchmarking: Label Count (All :Paper) (25 warmups, 100 iterations)...
+Benchmarking: Rel Count (All :CITES) (25 warmups, 100 iterations)...
+Benchmarking: Group-By In-Degree (Top Cited) (25 warmups, 100 iterations)...
+Benchmarking: Degree Distribution (Histogram) (25 warmups, 100 iterations)...
+
+================================================================================
+                    AGGREGATION & GROUP-BY BENCHMARK REPORT                     
+================================================================================
+| Workload                        | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+--------------------------------------------------------------------------------
+| Label Count (All :Paper)        |    261.02 |   261.74 |   263.54 |   262.06 |
+| Rel Count (All :CITES)          |    262.03 |   261.88 |   263.91 |   262.12 |
+| Group-By In-Degree (Top Cited)  |    858.98 |   884.78 |   901.29 |   886.62 |
+| Degree Distribution (Histogram) |    792.67 |   785.27 |   831.66 |   781.77 |
+================================================================================
+Connected to database. Sampling candidate Paper IDs...
+
+--- Testing: 10 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 682 queries (546 reads, 136 writes)
+Throughput : 33.63 queries/sec (QPS)
+Latency    : p50: 263.47 ms | p95: 268.24 ms | Avg: 295.38 ms
+
+--- Testing: 20 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 1,425 queries (1,124 reads, 301 writes)
+Throughput : 70.33 queries/sec (QPS)
+Latency    : p50: 264.51 ms | p95: 270.08 ms | Avg: 282.55 ms
+
+--- Testing: 40 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 2,781 queries (2,193 reads, 588 writes)
+Throughput : 137.17 queries/sec (QPS)
+Latency    : p50: 264.29 ms | p95: 270.69 ms | Avg: 290.10 ms
+
+================================================================
+        MIXED WORKLOAD BENCHMARK (80% READ / 20% WRITE)         
+================================================================
+| Concurrency | Sustained QPS | p50 (ms) | p95 (ms) | Avg (ms) |
+----------------------------------------------------------------
+| 10 clients  |         33.63 |   263.47 |   268.24 |   295.38 |
+| 20 clients  |         70.33 |   264.51 |   270.08 |   282.55 |
+| 40 clients  |        137.17 |   264.29 |   270.69 |   290.10 |
+================================================================
+
+######################################################################
+      FULL BENCHMARK SUITE COMPLETE
+######################################################################

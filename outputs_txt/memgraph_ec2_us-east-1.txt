@@ -1,0 +1,175 @@
+###########################################################################
+      AUTOMATED GRAPH DATABASE BENCHMARK SUITE — MEMGRAPH
+###########################################################################
+
+STEP 1: DATA INGESTION...
+Connected to database successfully.
+============================================================
+[1/3] Index/Constraint on :Paper(id) ready in 0.318s
+[2/3] Extracting unique node set...
+Loading 27,770 unique Paper nodes...
+✓ Committed 27,770 nodes in 3.77s (7,357.0 nodes/sec)
+
+[3/3] Streaming relationships into :CITES edges...
+  Committed: 50,000 edges...
+  Committed: 100,000 edges...
+  Committed: 150,000 edges...
+  Committed: 200,000 edges...
+  Committed: 250,000 edges...
+  Committed: 300,000 edges...
+  Committed: 350,000 edges...
+✓ Committed 352,807 edges in 47.83s (7,377.0 edges/sec)
+
+============================================================
+DATA LOADING METRICS (SECTION 5.2 REPORT)
+============================================================
+Total Wall-Clock Load Time : 52.03 seconds
+Node Ingest Throughput     : 7,357.02 nodes/sec (27,770 nodes in 3.77s)
+Relationship Ingest Rate   : 7,376.96 rels/sec (352,807 edges in 47.83s)
+Verified Database State    : 27,770 nodes | 352,807 relationships
+============================================================
+
+---------------------------------------------------------------------------
+
+STEP 2: DATABASE FOOTPRINT & RESOURCES...
+=================================================================
+DATABASE FOOTPRINT & RESOURCE USAGE INSPECTION
+=================================================================
+/Users/Andrew/graphdb/venv/lib/python3.13/site-packages/neo4j/_sync/work/result.py:636: UserWarning: Expected a result with a single record, but found multiple.
+  warn(
+Platform / Engine Version : Memgraph 5.9.0 (community)
+Total Nodes Ingested      : 27,770 nodes (:Paper)
+Total Relationships       : 352,807 edges (:CITES)
+-----------------------------------------------------------------
+STORAGE & MEMORY INFO (SHOW STORAGE INFO):
+   • vm_max_map_count             : 1048576
+   • memory_res                   : 163.98MiB
+   • peak_memory_res              : 164.71MiB
+   • disk_usage                   : 20.44MiB
+   • memory_tracked               : 91.61MiB
+   • memory_limit                 : 256.00MiB
+   • license_memory_limit         : unlimited
+   • query+graph_memory_tracked   : 91.61MiB
+   • vector_index_memory_tracked  : 0B
+   • global_isolation_level       : SNAPSHOT_ISOLATION
+   • session_isolation_level      : 
+   • next_session_isolation_level : 
+   • global_storage_mode          : IN_MEMORY_TRANSACTIONAL
+=================================================================
+
+---------------------------------------------------------------------------
+
+STEP 3: LOOKUPS...
+Connected. Sampling candidate Paper IDs...
+Prepared 25 dedicated warmup IDs and 100 distinct evaluation IDs.
+
+Benchmarking: Point Lookup (100 iterations)...
+Benchmarking: Indexed/Filtered Range Lookup (100 iterations)...
+
+===========================================================================
+                      LOOKUP LATENCY BENCHMARK REPORT                      
+===========================================================================
+| Workload                   | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+---------------------------------------------------------------------------
+| Point Lookup (:Paper {id}) |    362.30 |   270.45 |   345.88 |   290.47 |
+| Indexed / Filtered Lookup  |    269.71 |   269.25 |   326.00 |   276.78 |
+===========================================================================
+
+[Indexed Properties on Platform]
+ - :Paper(id) -> Unique Constraint / Primary B-tree Index
+
+---------------------------------------------------------------------------
+
+STEP 4: HOP TRAVERSALS...
+Connected. Sampling candidate start nodes...
+Prepared 25 dedicated warmup nodes and 100 distinct evaluation start nodes.
+
+Benchmarking: 1-Hop Traversal (100 iterations)...
+Benchmarking: 2-Hop Traversal (100 iterations)...
+Benchmarking: 3-Hop Traversal (100 iterations)...
+
+===================================================================================
+                         TRAVERSAL LATENCY BENCHMARK REPORT                        
+===================================================================================
+| Workload        | Avg Result Count | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+-----------------------------------------------------------------------------------
+| 1-Hop Traversal |             14.3 |    264.21 |   259.63 |   368.57 |   276.84 |
+| 2-Hop Traversal |            170.1 |    306.89 |   260.00 |   353.76 |   279.01 |
+| 3-Hop Traversal |            829.8 |    330.62 |   260.74 |   308.06 |   268.50 |
+===================================================================================
+
+---------------------------------------------------------------------------
+
+STEP 5: AGGREGATIONS & GROUP-BY...
+Connected to database.
+
+Benchmarking: Label Count (All :Paper) (25 warmups, 100 iterations)...
+Benchmarking: Rel Count (All :CITES) (25 warmups, 100 iterations)...
+Benchmarking: Group-By In-Degree (Top Cited) (25 warmups, 100 iterations)...
+Benchmarking: Degree Distribution (Histogram) (25 warmups, 100 iterations)...
+
+================================================================================
+                    AGGREGATION & GROUP-BY BENCHMARK REPORT                     
+================================================================================
+| Workload                        | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+--------------------------------------------------------------------------------
+| Label Count (All :Paper)        |    270.46 |   272.92 |   343.92 |   287.51 |
+| Rel Count (All :CITES)          |    313.72 |   314.14 |   358.65 |   320.44 |
+| Group-By In-Degree (Top Cited)  |   1416.46 |   674.14 |   783.06 |   684.94 |
+| Degree Distribution (Histogram) |    403.99 |   391.68 |   478.46 |   396.12 |
+================================================================================
+
+---------------------------------------------------------------------------
+
+STEP 6: CONCURRENT MIXED WORKLOAD...
+Connected to database. Sampling candidate Paper IDs...
+
+--- Testing: 10 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 740 queries (597 reads, 143 writes)
+Throughput : 36.61 queries/sec (QPS)
+Latency    : p50: 261.72 ms | p95: 273.65 ms | Avg: 271.44 ms
+
+--- Testing: 20 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 1,491 queries (1,194 reads, 297 writes)
+Throughput : 73.56 queries/sec (QPS)
+Latency    : p50: 263.71 ms | p95: 274.90 ms | Avg: 269.99 ms
+
+--- Testing: 40 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 2,940 queries (2,340 reads, 600 writes)
+Throughput : 145.01 queries/sec (QPS)
+Latency    : p50: 265.61 ms | p95: 281.24 ms | Avg: 273.98 ms
+
+================================================================
+        MIXED WORKLOAD BENCHMARK (80% READ / 20% WRITE)         
+================================================================
+| Concurrency | Sustained QPS | p50 (ms) | p95 (ms) | Avg (ms) |
+----------------------------------------------------------------
+| 10 clients  |         36.61 |   261.72 |   273.65 |   271.44 |
+| 20 clients  |         73.56 |   263.71 |   274.90 |   269.99 |
+| 40 clients  |        145.01 |   265.61 |   281.24 |   273.98 |
+================================================================
+
+---------------------------------------------------------------------------
+
+
+###########################################################################
+      BENCHMARK SUITE COMPLETE — MEMGRAPH
+###########################################################################
+  ✓  Step 1: DATA INGESTION                           [PASSED]
+  ✓  Step 2: DATABASE FOOTPRINT & RESOURCES           [PASSED]
+  ✓  Step 3: LOOKUPS                                  [PASSED]
+  ✓  Step 4: HOP TRAVERSALS                           [PASSED]
+  ✓  Step 5: AGGREGATIONS & GROUP-BY                  [PASSED]
+  ✓  Step 6: CONCURRENT MIXED WORKLOAD                [PASSED]
+
+  6/6 steps passed.
+  All steps passed.
+###########################################################################
+
+Initially had problems with creating the database for this since it took like ~35 seconds to 
+create edges between nodes. I later found out the index wasnt set and it wasnt index and had to add indecx to it.
+It was different with neo4j since here you set the index and in neo4j it automtatically gets indexed once 
+unique constraint is set.
+
+When testing in local docker it seemed to get OOM so quickly since I noticed the memory peaking whenever I reached the aggregate queries, 
+and fail the aggredatiuon queries, but when I placed the image in my ec2 it worked smoothly and everything went well.

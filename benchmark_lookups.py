@@ -102,6 +102,15 @@ def run_lookup_benchmark():
         print("\n[Indexed Properties on Platform]")
         print(" - :Paper(id) -> Unique Constraint / Primary B-tree Index")
 
+        return {
+            "lookup_point_p50":     stats_point["p50"],
+            "lookup_point_p95":     stats_point["p95"],
+            "lookup_point_avg":     stats_point["avg"],
+            "lookup_filtered_p50":  stats_filtered["p50"],
+            "lookup_filtered_p95":  stats_filtered["p95"],
+            "lookup_filtered_avg":  stats_filtered["avg"],
+        }
+
 
 if __name__ == "__main__":
     run_lookup_benchmark()

@@ -13,10 +13,8 @@ def create_schema(driver):
     with driver.session() as session:
         db_type = DB.upper()
         if "MEMGRAPH" in db_type:
-            # Memgraph syntax (index)
             session.run("CREATE INDEX ON :Paper(id);").consume()
-        elif "COGNODB" in db_type or "NEO" in db_type:
-            # CognoDB / Neo4j modern Cypher syntax (unique constraint automatically builds index)
+        elif "COGNODB" in db_type or "NEO4J" in db_type:
             session.run(
                 "CREATE CONSTRAINT paper_id_unique IF NOT EXISTS FOR (p:Paper) REQUIRE p.id IS UNIQUE;"
             ).consume()
@@ -57,7 +55,7 @@ def load_nodes(driver, nodes):
     with driver.session() as session:
         for i in range(0, total, BATCH_SIZE):
             batch = nodes[i : i + BATCH_SIZE]
-            session.run(query, batch=batch)
+            session.run(query, batch=batch).consume()
 
     t1 = time.perf_counter()
     elapsed = t1 - t0
@@ -90,14 +88,14 @@ def load_edges(driver, file_path):
                 total_edges += 1
 
                 if len(batch) >= BATCH_SIZE:
-                    session.run(query, batch=batch)
+                    session.run(query, batch=batch).consume()
                     batch = []
                     if total_edges % 50000 == 0:
                         print(f"  Committed: {total_edges:,} edges...")
 
         # Flush remaining buffer
         if batch:
-            session.run(query, batch=batch)
+            session.run(query, batch=batch).consume()
 
     t1 = time.perf_counter()
     elapsed = t1 - t0
@@ -118,8 +116,10 @@ def main():
 
         total_wall_clock_start = time.perf_counter()
 
-        nodes_list = extract_unique_nodes(FILE_PATH)
+        if DB.upper() != "ARCADEDB":
+            create_schema(driver)
 
+        nodes_list = extract_unique_nodes(FILE_PATH)
 
         node_count, node_time, node_rate = load_nodes(
                 driver, nodes_list

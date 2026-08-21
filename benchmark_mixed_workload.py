@@ -99,15 +99,29 @@ def run_mixed_workload_benchmark():
         node_pool = sample_any_nodes(driver, limit=1000)
 
         rows = []
+        mixed_stats = {}
         for c in CONCURRENCY_LEVELS:
             row = run_concurrency_test(driver, c, node_pool)
             rows.append(row)
+            mixed_stats[c] = {
+                "qps": row[1],
+                "p50": row[2],
+                "p95": row[3],
+            }
 
         print_table(
             title=f"MIXED WORKLOAD BENCHMARK ({round(READ_RATIO*100)}% READ / {round((1-READ_RATIO)*100)}% WRITE)",
             headers=["Concurrency", "Sustained QPS", "p50 (ms)", "p95 (ms)", "Avg (ms)"],
             rows=rows,
         )
+
+        result = {}
+        for c in CONCURRENCY_LEVELS:
+            s = mixed_stats.get(c, {})
+            result[f"mixed_{c}c_qps"] = s.get("qps", "")
+            result[f"mixed_{c}c_p50"] = s.get("p50", "")
+            result[f"mixed_{c}c_p95"] = s.get("p95", "")
+        return result
 
 
 if __name__ == "__main__":

@@ -1,0 +1,147 @@
+###########################################################################
+      AUTOMATED GRAPH DATABASE BENCHMARK SUITE (SECTION 5.2)
+###########################################################################
+
+STEP 1: RUNNING DATA INGESTION BENCHMARK...
+Connected to database successfully.
+============================================================
+Resetting database state for fresh benchmark load...
+✓ Database wiped clean.
+
+[1/3] Index/Constraint on :Paper(id) ready in 0.119s
+[2/3] Extracting unique node set...
+Loading 27,770 unique Paper nodes...
+✓ Committed 27,770 nodes in 1.34s (20,711.0 nodes/sec)
+
+[3/3] Streaming relationships into :CITES edges...
+  Committed: 50,000 edges...
+  Committed: 100,000 edges...
+  Committed: 150,000 edges...
+  Committed: 200,000 edges...
+  Committed: 250,000 edges...
+  Committed: 300,000 edges...
+  Committed: 350,000 edges...
+✓ Committed 352,807 edges in 10.20s (34,584.8 edges/sec)
+
+============================================================
+DATA LOADING METRICS (SECTION 5.2 REPORT)
+============================================================
+Total Wall-Clock Load Time : 11.81 seconds
+Node Ingest Throughput     : 20,711.02 nodes/sec (27,770 nodes in 1.34s)
+Relationship Ingest Rate   : 34,584.79 rels/sec (352,807 edges in 10.20s)
+Verified Database State    : 27,770 nodes | 352,807 relationships
+============================================================
+
+---------------------------------------------------------------------------
+
+STEP 2: INSPECTING DATABASE FOOTPRINT & RESOURCE USAGE...
+=================================================================
+DATABASE FOOTPRINT & RESOURCE USAGE INSPECTION
+=================================================================
+/Users/Andrew/graphdb/venv/lib/python3.13/site-packages/neo4j/_sync/work/result.py:636: UserWarning: Expected a result with a single record, but found multiple.
+  warn(
+Platform / Engine Version : Neo4j Kernel 2026.07.1 (community)
+Total Nodes Ingested      : 27,770 nodes (:Paper)
+Total Relationships       : 352,807 edges (:CITES)
+-----------------------------------------------------------------
+STORAGE & MEMORY INFO (SHOW STORAGE INFO):
+   Could not retrieve storage info: {neo4j_code: Neo.ClientError.Statement.SyntaxError} {message: Invalid input 'STORAGE': expected 'ALIAS', 'ALIASES', 'ALL', 'BTREE', 'CONSTRAINT', 'CONSTRAINTS', 'DATABASE', 'DEFAULT DATABASE', 'HOME DATABASE', 'DATABASES', 'EXIST', 'EXISTENCE', 'EXISTS', 'FULLTEXT', 'FUNCTION', 'FUNCTIONS', 'BUILT IN', 'INDEX', 'INDEXES', 'KEY', 'LOOKUP', 'NODE', 'POINT', 'POPULATED', 'PRIVILEGE', 'PRIVILEGES', 'PROCEDURE', 'PROCEDURES', 'PROPERTY', 'RANGE', 'REL', 'RELATIONSHIP', 'ROLE', 'ROLES', 'SERVER', 'SERVERS', 'SETTING', 'SETTINGS', 'SUPPORTED', 'TEXT', 'TRANSACTION', 'TRANSACTIONS', 'UNIQUE', 'UNIQUENESS', 'USER', 'CURRENT USER', 'USERS' or 'VECTOR' (line 1, column 6 (offset: 5))
+"SHOW STORAGE INFO"
+      ^} {gql_status: 42001} {gql_status_description: error: syntax error or access rule violation - invalid syntax}
+=================================================================
+
+---------------------------------------------------------------------------
+
+STEP 3: BENCHMARKING LOOKUPS...
+Connected. Sampling candidate Paper IDs...
+Prepared 25 dedicated warmup IDs and 100 distinct evaluation IDs.
+
+Benchmarking: Point Lookup (100 iterations)...
+Benchmarking: Indexed/Filtered Range Lookup (100 iterations)...
+
+===========================================================================
+                      LOOKUP LATENCY BENCHMARK REPORT                      
+===========================================================================
+| Workload                   | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+---------------------------------------------------------------------------
+| Point Lookup (:Paper {id}) |     71.29 |     1.89 |     3.17 |     2.40 |
+| Indexed / Filtered Lookup  |    117.34 |     1.96 |     3.75 |     2.20 |
+===========================================================================
+
+[Indexed Properties on Platform]
+ - :Paper(id) -> Unique Constraint / Primary B-tree Index
+
+---------------------------------------------------------------------------
+
+STEP 4: BENCHMARKING HOP TRAVERSALS...
+Connected. Sampling candidate start nodes...
+Prepared 25 dedicated warmup nodes and 100 distinct evaluation start nodes.
+
+Benchmarking: 1-Hop Traversal (100 iterations)...
+Benchmarking: 2-Hop Traversal (100 iterations)...
+Benchmarking: 3-Hop Traversal (100 iterations)...
+
+===================================================================================
+                         TRAVERSAL LATENCY BENCHMARK REPORT                        
+===================================================================================
+| Workload        | Avg Result Count | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+-----------------------------------------------------------------------------------
+| 1-Hop Traversal |             11.6 |    111.57 |     1.54 |     2.02 |     1.56 |
+| 2-Hop Traversal |            127.0 |    146.19 |     2.48 |     3.94 |     2.63 |
+| 3-Hop Traversal |            624.1 |     77.38 |     2.11 |     9.06 |     3.08 |
+===================================================================================
+
+---------------------------------------------------------------------------
+
+STEP 5: BENCHMARKING AGGREGATIONS & GROUP-BY...
+Connected to database.
+
+Benchmarking: Label Count (All :Paper) (25 warmups, 100 iterations)...
+Benchmarking: Rel Count (All :CITES) (25 warmups, 100 iterations)...
+Benchmarking: Group-By In-Degree (Top Cited) (25 warmups, 100 iterations)...
+Benchmarking: Degree Distribution (Histogram) (25 warmups, 100 iterations)...
+
+================================================================================
+                    AGGREGATION & GROUP-BY BENCHMARK REPORT                     
+================================================================================
+| Workload                        | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+--------------------------------------------------------------------------------
+| Label Count (All :Paper)        |     31.75 |     1.02 |     1.27 |     1.05 |
+| Rel Count (All :CITES)          |     19.82 |     1.01 |     1.44 |     1.09 |
+| Group-By In-Degree (Top Cited)  |    349.84 |   239.09 |   358.01 |   257.93 |
+| Degree Distribution (Histogram) |    544.93 |    92.12 |   152.76 |   106.70 |
+================================================================================
+
+---------------------------------------------------------------------------
+
+STEP 6: BENCHMARKING CONCURRENT MIXED WORKLOAD...
+Connected to database. Sampling candidate Paper IDs...
+
+--- Testing: 10 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 26,071 queries (20,864 reads, 5,207 writes)
+Throughput : 1,297.01 queries/sec (QPS)
+Latency    : p50: 5.72 ms | p95: 16.43 ms | Avg: 7.70 ms
+
+--- Testing: 20 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 32,202 queries (25,739 reads, 6,463 writes)
+Throughput : 1,603.24 queries/sec (QPS)
+Latency    : p50: 9.77 ms | p95: 22.13 ms | Avg: 12.44 ms
+
+--- Testing: 40 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 36,874 queries (29,533 reads, 7,341 writes)
+Throughput : 1,834.17 queries/sec (QPS)
+Latency    : p50: 19.61 ms | p95: 41.56 ms | Avg: 21.77 ms
+
+================================================================
+        MIXED WORKLOAD BENCHMARK (80% READ / 20% WRITE)         
+================================================================
+| Concurrency | Sustained QPS | p50 (ms) | p95 (ms) | Avg (ms) |
+----------------------------------------------------------------
+| 10 clients  |      1,297.01 |     5.72 |    16.43 |     7.70 |
+| 20 clients  |      1,603.24 |     9.77 |    22.13 |    12.44 |
+| 40 clients  |      1,834.17 |    19.61 |    41.56 |    21.77 |
+================================================================
+
+###########################################################################
+      ALL BENCHMARKS COMPLETED SUCCESSFULLY
+###########################################################################

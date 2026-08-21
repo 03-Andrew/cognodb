@@ -2,12 +2,87 @@ import math
 import random
 import statistics
 import time
-from neo4j import GraphDatabase
-from vars import URI, AUTH
+from vars import DB
+
+
+# ---------------------------------------------------------------------------
+# FalkorDB adapter — wraps graph.query() to look like the neo4j driver API
+# so all benchmark scripts work unchanged when DB=FALKORDB.
+# ---------------------------------------------------------------------------
+
+class FalkorRecord:
+    """Wraps a FalkorDB result row to support record["column_name"] access."""
+    def __init__(self, row, header):
+        self._row = row
+        self._header = header  # list of column name strings
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._row[key]
+        return self._row[self._header.index(key)]
+
+    def __iter__(self):
+        return iter(self._row)
+
+
+class FalkorResult:
+    """Wraps a FalkorDB QueryResult to support .consume(), .single(), and iteration."""
+    def __init__(self, result):
+        self._result = result
+        # FalkorDB header is a list of [type_int, name_str] pairs
+        self._header = [col[1] for col in result.header] if result.header else []
+
+    def consume(self):
+        return self
+
+    def single(self):
+        if not self._result.result_set:
+            return None
+        return FalkorRecord(self._result.result_set[0], self._header)
+
+    def __iter__(self):
+        for row in self._result.result_set:
+            yield FalkorRecord(row, self._header)
+
+
+class FalkorSession:
+    """Wraps graph.query() to support session.run(query, **params)."""
+    def __init__(self, graph):
+        self._graph = graph
+
+    def run(self, query, **params):
+        result = self._graph.query(query, params if params else None)
+        return FalkorResult(result)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+
+class FalkorDriver:
+    """Wraps a FalkorDB graph to support driver.session() context manager."""
+    def __init__(self, graph):
+        self._graph = graph
+
+    def session(self):
+        return FalkorSession(self._graph)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
 
 
 def get_driver():
-    """Initializes and verifies the Neo4j/CognoDB driver connection."""
+    """Returns a driver compatible with the configured DB backend."""
+    if DB.upper() == "FALKORDB":
+        from vars import GRAPH as graph
+        return FalkorDriver(graph)
+    from neo4j import GraphDatabase
+    from vars import URI, AUTH
     driver = GraphDatabase.driver(URI, auth=AUTH)
     driver.verify_connectivity()
     return driver
@@ -138,3 +213,57 @@ def print_table(title, headers, rows):
         print(row_str)
 
     print(sep_line)
+
+
+def append_results_csv(results: dict, csv_path: str = "benchmark_results.csv"):
+    """
+    Appends a single flat row of benchmark results to a CSV file.
+    Creates the file with headers if it does not exist.
+    The CSV is always written to the same directory as this script file.
+
+    Expected keys in results dict (all optional, missing values written as ''):
+      db, timestamp,
+      lookup_point_p50, lookup_point_p95, lookup_point_avg,
+      lookup_filtered_p50, lookup_filtered_p95, lookup_filtered_avg,
+      traversal_1hop_p50, traversal_1hop_p95, traversal_1hop_avg,
+      traversal_2hop_p50, traversal_2hop_p95, traversal_2hop_avg,
+      traversal_3hop_p50, traversal_3hop_p95, traversal_3hop_avg,
+      agg_label_count_p50, agg_label_count_avg,
+      agg_rel_count_p50, agg_rel_count_avg,
+      agg_groupby_p50, agg_groupby_avg,
+      agg_degree_dist_p50, agg_degree_dist_avg,
+      mixed_10c_qps, mixed_10c_p50, mixed_10c_p95,
+      mixed_20c_qps, mixed_20c_p50, mixed_20c_p95,
+      mixed_40c_qps, mixed_40c_p50, mixed_40c_p95,
+    """
+    import csv
+    import os
+
+    # Always resolve relative to this file's directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    full_path = os.path.join(script_dir, csv_path)
+
+    headers = [
+        "db", "timestamp",
+        "lookup_point_p50", "lookup_point_p95", "lookup_point_avg",
+        "lookup_filtered_p50", "lookup_filtered_p95", "lookup_filtered_avg",
+        "traversal_1hop_p50", "traversal_1hop_p95", "traversal_1hop_avg",
+        "traversal_2hop_p50", "traversal_2hop_p95", "traversal_2hop_avg",
+        "traversal_3hop_p50", "traversal_3hop_p95", "traversal_3hop_avg",
+        "agg_label_count_p50", "agg_label_count_avg",
+        "agg_rel_count_p50", "agg_rel_count_avg",
+        "agg_groupby_p50", "agg_groupby_avg",
+        "agg_degree_dist_p50", "agg_degree_dist_avg",
+        "mixed_10c_qps", "mixed_10c_p50", "mixed_10c_p95",
+        "mixed_20c_qps", "mixed_20c_p50", "mixed_20c_p95",
+        "mixed_40c_qps", "mixed_40c_p50", "mixed_40c_p95",
+    ]
+
+    file_exists = os.path.isfile(full_path)
+    with open(full_path, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=headers, extrasaction="ignore")
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow({h: results.get(h, "") for h in headers})
+
+    print(f"\n✓ Results appended to {full_path}")

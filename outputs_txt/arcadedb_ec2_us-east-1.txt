@@ -1,0 +1,174 @@
+###########################################################################
+      AUTOMATED GRAPH DATABASE BENCHMARK SUITE — ARCADEDB
+###########################################################################
+
+STEP 1: DATA INGESTION...
+--- ArcadeDB Setup (HTTP) ---
+Database 'citation' created.
+Schema created.
+
+--- Data Ingestion (Bolt) ---
+Connected to database successfully.
+============================================================
+[2/3] Extracting unique node set...
+Loading 27,770 unique Paper nodes...
+✓ Committed 27,770 nodes in 13.52s (2,053.3 nodes/sec)
+
+[3/3] Streaming relationships into :CITES edges...
+  Committed: 50,000 edges...
+  Committed: 100,000 edges...
+  Committed: 150,000 edges...
+  Committed: 200,000 edges...
+  Committed: 250,000 edges...
+  Committed: 300,000 edges...
+  Committed: 350,000 edges...
+✓ Committed 352,807 edges in 99.52s (3,545.1 edges/sec)
+
+============================================================
+DATA LOADING METRICS (SECTION 5.2 REPORT)
+============================================================
+Total Wall-Clock Load Time : 113.16 seconds
+Node Ingest Throughput     : 2,053.28 nodes/sec (27,770 nodes in 13.52s)
+Relationship Ingest Rate   : 3,545.12 rels/sec (352,807 edges in 99.52s)
+Verified Database State    : 27,770 nodes | 352,807 relationships
+============================================================
+
+---------------------------------------------------------------------------
+
+STEP 2: DATABASE FOOTPRINT & RESOURCES...
+=================================================================
+DATABASE FOOTPRINT & RESOURCE USAGE INSPECTION
+=================================================================
+Platform / Engine Version : Neo4j Kernel 5.26.0 (community)
+Total Nodes Ingested      : 27,770 nodes (:Paper)
+Total Relationships       : 352,807 edges (:CITES)
+-----------------------------------------------------------------
+STORAGE & MEMORY INFO (SHOW STORAGE INFO):
+   Could not retrieve storage info: {neo4j_code: Neo.ClientError.Statement.SyntaxError} {message: Syntax error at line 1:5 - mismatched input 'STORAGE', expected: a name} {gql_status: 50N42} {gql_status_description: error: general processing exception - unexpected error. Syntax error at line 1:5 - mismatched input 'STORAGE', expected: a name}
+=================================================================
+
+---------------------------------------------------------------------------
+
+STEP 3: LOOKUPS...
+Connected. Sampling candidate Paper IDs...
+Prepared 25 dedicated warmup IDs and 100 distinct evaluation IDs.
+
+Benchmarking: Point Lookup (100 iterations)...
+Benchmarking: Indexed/Filtered Range Lookup (100 iterations)...
+
+===========================================================================
+                      LOOKUP LATENCY BENCHMARK REPORT                      
+===========================================================================
+| Workload                   | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+---------------------------------------------------------------------------
+| Point Lookup (:Paper {id}) |    289.38 |   281.14 |   362.83 |   341.65 |
+| Indexed / Filtered Lookup  |    314.20 |   300.37 |   339.88 |   300.93 |
+===========================================================================
+
+[Indexed Properties on Platform]
+ - :Paper(id) -> Unique Constraint / Primary B-tree Index
+
+---------------------------------------------------------------------------
+
+STEP 4: HOP TRAVERSALS...
+Connected. Sampling candidate start nodes...
+Prepared 25 dedicated warmup nodes and 100 distinct evaluation start nodes.
+
+Benchmarking: 1-Hop Traversal (100 iterations)...
+Benchmarking: 2-Hop Traversal (100 iterations)...
+Benchmarking: 3-Hop Traversal (100 iterations)...
+
+===================================================================================
+                         TRAVERSAL LATENCY BENCHMARK REPORT                        
+===================================================================================
+| Workload        | Avg Result Count | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+-----------------------------------------------------------------------------------
+| 1-Hop Traversal |             14.3 |    297.76 |   301.42 |   349.51 |   299.05 |
+| 2-Hop Traversal |            158.6 |    299.27 |   306.49 |   368.63 |   309.32 |
+| 3-Hop Traversal |            787.5 |    339.00 |   307.30 |   410.07 |   313.01 |
+===================================================================================
+
+
+---------------------------------------------------------------------------
+
+STEP 5: BENCHMARKING AGGREGATIONS & GROUP-BY...
+Connected to database.
+
+Benchmarking: Label Count (All :Paper) (25 warmups, 100 iterations)...
+Benchmarking: Rel Count (All :CITES) (25 warmups, 100 iterations)...
+Benchmarking: Group-By In-Degree (Top Cited) (25 warmups, 100 iterations)...
+[#DEAF]  _: <CONNECTION> error: Failed to read from defunct connection IPv4Address(('44.192.131.50', 7687)) (ResolvedIPv4Address(('44.192.131.50', 7687))): ConnectionResetError(54, 'Connection reset by peer')
+Benchmarking: Degree Distribution (Histogram) (25 warmups, 100 iterations)...
+
+====================================================================================================================================
+                                              AGGREGATION & GROUP-BY BENCHMARK REPORT                                               
+====================================================================================================================================
+| Workload                        | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms)                                                     |
+------------------------------------------------------------------------------------------------------------------------------------
+| Label Count (All :Paper)        |    277.63 |   283.05 |   358.04 |                                                       297.97 |
+| Rel Count (All :CITES)          |   3077.47 |  1341.49 |  1693.94 |                                                      1419.32 |
+| Group-By In-Degree (Top Cited)  |    FAILED |   FAILED |   FAILED | Failed to read from defunct connection IPv4Address(('44.192. |
+| Degree Distribution (Histogram) |    FAILED |   FAILED |   FAILED | Couldn't connect to 44.192.131.50:7687 (resolved to ('44.192 |
+====================================================================================================================================
+
+
+Re run below: 
+
+Benchmarking: Label Count (All :Paper) (25 warmups, 100 iterations)...
+Benchmarking: Rel Count (All :CITES) (25 warmups, 100 iterations)...
+Benchmarking: Group-By In-Degree (Top Cited) (25 warmups, 100 iterations)...
+Benchmarking: Degree Distribution (Histogram) (25 warmups, 100 iterations)...
+
+================================================================================
+                    AGGREGATION & GROUP-BY BENCHMARK REPORT                     
+================================================================================
+| Workload                        | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+--------------------------------------------------------------------------------
+| Label Count (All :Paper)        |   2409.92 |   271.30 |   319.39 |   279.70 |
+| Rel Count (All :CITES)          |   8937.99 |  1299.44 |  1969.67 |  1411.89 |
+| Group-By In-Degree (Top Cited)  |   8241.79 |  2129.19 |  2425.64 |  2215.66 |
+| Degree Distribution (Histogram) |   5806.88 |  2000.79 |  2963.92 |  2065.03 |
+================================================================================
+
+---------------------------------------------------------------------------
+
+STEP 5 failed.
+
+After re run 
+--- Testing: 10 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 702 queries (570 reads, 132 writes)
+Throughput : 34.68 queries/sec (QPS)
+Latency    : p50: 274.81 ms | p95: 300.85 ms | Avg: 286.78 ms
+
+--- Testing: 20 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 1,442 queries (1,160 reads, 282 writes)
+Throughput : 71.16 queries/sec (QPS)
+Latency    : p50: 271.28 ms | p95: 285.60 ms | Avg: 279.45 ms
+
+--- Testing: 40 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 1,035 queries (837 reads, 198 writes)
+Throughput : 51.03 queries/sec (QPS)
+Latency    : p50: 271.65 ms | p95: 1064.82 ms | Avg: 777.92 ms
+
+================================================================
+        MIXED WORKLOAD BENCHMARK (80% READ / 20% WRITE)         
+================================================================
+| Concurrency | Sustained QPS | p50 (ms) | p95 (ms) | Avg (ms) |
+----------------------------------------------------------------
+| 10 clients  |         34.68 |   274.81 |   300.85 |   286.78 |
+| 20 clients  |         71.16 |   271.28 |   285.60 |   279.45 |
+| 40 clients  |         51.03 |   271.65 |  1064.82 |   777.92 |
+================================================================
+
+notes: 
+
+Initially had some issues when setting up the arcadedb. I was trying to build schema using cypher the whole time and keep on getting an error.
+I later found out the query must be in sql for setting up the table and schema. From there adjusted the code to use SQL for building the schema 
+and reused the base cypher code do append and add noded and edges. 
+
+Another problem was with the resouce constraints, since arcadb runs with java I had to allocate about half of the memory to the heap. Before this
+my tests also kept failing due to OOM from heap, after setting it it now worked but the last test failed.
+
+For the tests since Aggregation failed I re ran it manually to get at least an output
+
+

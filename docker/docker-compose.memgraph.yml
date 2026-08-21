@@ -1,0 +1,36 @@
+services:
+  memgraph:
+    image: memgraph/memgraph:latest
+    container_name: memgraph-mage
+    pull_policy: always
+    ports:
+      - "7687:7687"
+      - "7444:7444"
+    command: ["--log-level=TRACE", "--memory-limit=256"]
+    cpus: 0.5
+    mem_limit: 256m
+    mem_reservation: 128m
+    memswap_limit: 256m
+    storage_opt:
+      size: 1G
+    volumes:
+      - memgraph_data:/var/lib/memgraph
+      - memgraph_log:/var/log/memgraph
+    restart: on-failure
+
+  lab:
+    image: memgraph/lab:latest
+    container_name: memgraph-lab
+    pull_policy: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - memgraph
+    environment:
+      - QUICK_CONNECT_MG_HOST=memgraph
+      - QUICK_CONNECT_MG_PORT=7687
+    restart: on-failure
+
+volumes:
+  memgraph_data:
+  memgraph_log:

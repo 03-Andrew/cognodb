@@ -57,6 +57,7 @@ def run_traversal_benchmark():
         warmup_provider = NodeSequenceProvider(warmup_nodes)
         eval_provider = NodeSequenceProvider(eval_nodes)
 
+        hop_stats = {}
         rows = []
         with driver.session() as session:
             for label, query in workloads:
@@ -73,6 +74,8 @@ def run_traversal_benchmark():
                     iterations=len(eval_nodes),
                     extract_result=True,
                 )
+                hop_key = label.lower().replace("-hop traversal", "hop").replace(" ", "")
+                hop_stats[hop_key] = stats
                 rows.append([
                     label,
                     f"{stats['avg_count']:,.1f}",
@@ -87,6 +90,18 @@ def run_traversal_benchmark():
             headers=["Workload", "Avg Result Count", "Cold (ms)", "p50 (ms)", "p95 (ms)", "Avg (ms)"],
             rows=rows,
         )
+
+        return {
+            "traversal_1hop_p50": hop_stats.get("1hop", {}).get("p50", ""),
+            "traversal_1hop_p95": hop_stats.get("1hop", {}).get("p95", ""),
+            "traversal_1hop_avg": hop_stats.get("1hop", {}).get("avg", ""),
+            "traversal_2hop_p50": hop_stats.get("2hop", {}).get("p50", ""),
+            "traversal_2hop_p95": hop_stats.get("2hop", {}).get("p95", ""),
+            "traversal_2hop_avg": hop_stats.get("2hop", {}).get("avg", ""),
+            "traversal_3hop_p50": hop_stats.get("3hop", {}).get("p50", ""),
+            "traversal_3hop_p95": hop_stats.get("3hop", {}).get("p95", ""),
+            "traversal_3hop_avg": hop_stats.get("3hop", {}).get("avg", ""),
+        }
 
 
 if __name__ == "__main__":

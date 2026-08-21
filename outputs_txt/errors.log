@@ -1,0 +1,17 @@
+java.lang.OutOfMemoryError: Java heap space
+arcadedb-1  | Dumping heap to java_pid1.hprof ...
+arcadedb-1  | Heap dump file created [190170557 bytes in 1.707 secs]
+arcadedb-1  | 2026-08-20 19:46:16.036 INFO  [ArcadeDBServer] <ArcadeDB_0> Studio web tool available at http://localhost:2480 Exception in thread "BOLT-/138.84.111.242:4920" java.lang.OutOfMemoryError: Java heap space
+arcadedb-1  |   at java.base/java.nio.ByteBuffer.wrap(ByteBuffer.java:436)
+arcadedb-1  |   at java.base/java.nio.ByteBuffer.wrap(ByteBuffer.java:465)
+arcadedb-1  |   at com.arcadedb.database.Binary.<init>(Binary.java:86)
+arcadedb-1  |   at com.arcadedb.engine.BasePage.<init>(BasePage.java:48)
+arcadedb-1  |   at com.arcadedb.engine.ImmutablePage.<init>(ImmutablePage.java:38)
+arcadedb-1  |   at com.arcadedb.engine.CachedPage.useAsImmutable(CachedPage.java:77)
+arcadedb-1  |   at com.arcadedb.engine.PageManager.getImmutablePage(PageManager.java:1024)
+arcadedb-1  |   at com.arcadedb.database.TransactionContext.getPage(TransactionContext.java:595)
+arcadedb-1  |   at com.arcadedb.engine.LocalBucket.getRecordInternal(LocalBucket.java:2000)
+arcadedb-1  |   at com.arcadedb.engine.LocalBucket.getRecord(LocalBucket.java:480)
+arcadedb-1  |   at com.arcadedb.database.ImmutableDocument.checkForLazyLoading(ImmutableDocument.java:260)
+arcadedb-1  |   at com.arcadedb.graph.ImmutableEdge.checkForLazyLoading(ImmutableEdge.java:191)
+arcadedb-1  |   at com.arcadedb.graph.ImmutableEdge.getOutVertex(ImmutableEdge.java:115)

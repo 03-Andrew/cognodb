@@ -1,0 +1,153 @@
+###########################################################################
+      AUTOMATED GRAPH DATABASE BENCHMARK SUITE — COGNODB
+###########################################################################
+
+STEP 1: DATA INGESTION...
+Connected to database successfully.
+============================================================
+[1/3] Index/Constraint on :Paper(id) ready in 0.300s
+[2/3] Extracting unique node set...
+Loading 27,770 unique Paper nodes...
+✓ Committed 27,770 nodes in 3.12s (8,904.3 nodes/sec)
+
+[3/3] Streaming relationships into :CITES edges...
+  Committed: 50,000 edges...
+  Committed: 100,000 edges...
+  Committed: 150,000 edges...
+  Committed: 200,000 edges...
+  Committed: 250,000 edges...
+  Committed: 300,000 edges...
+  Committed: 350,000 edges...
+✓ Committed 352,807 edges in 49.42s (7,139.5 edges/sec)
+
+============================================================
+DATA LOADING METRICS (SECTION 5.2 REPORT)
+============================================================
+Total Wall-Clock Load Time : 52.93 seconds
+Node Ingest Throughput     : 8,904.29 nodes/sec (27,770 nodes in 3.12s)
+Relationship Ingest Rate   : 7,139.51 rels/sec (352,807 edges in 49.42s)
+Verified Database State    : 27,770 nodes | 352,807 relationships
+============================================================
+
+---------------------------------------------------------------------------
+
+STEP 2: DATABASE FOOTPRINT & RESOURCES...
+=================================================================
+DATABASE FOOTPRINT & RESOURCE USAGE INSPECTION
+=================================================================
+Platform / Engine Version : Unknown
+Total Nodes Ingested      : 27,770 nodes (:Paper)
+Total Relationships       : 352,807 edges (:CITES)
+-----------------------------------------------------------------
+STORAGE & MEMORY INFO (SHOW STORAGE INFO):
+   Could not retrieve storage info: {neo4j_code: Neo.ClientError.Statement.SyntaxError} {message: syntax error: expected INDEXES or CONSTRAINTS after SHOW} {gql_status: 50N42} {gql_status_description: error: general processing exception - unexpected error. syntax error: expected INDEXES or CONSTRAINTS after SHOW}
+=================================================================
+
+---------------------------------------------------------------------------
+
+STEP 3: LOOKUPS...
+Connected. Sampling candidate Paper IDs...
+Prepared 25 dedicated warmup IDs and 100 distinct evaluation IDs.
+
+Benchmarking: Point Lookup (100 iterations)...
+Benchmarking: Indexed/Filtered Range Lookup (100 iterations)...
+
+===========================================================================
+                      LOOKUP LATENCY BENCHMARK REPORT                      
+===========================================================================
+| Workload                   | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+---------------------------------------------------------------------------
+| Point Lookup (:Paper {id}) |    208.95 |   209.60 |   311.23 |   243.97 |
+| Indexed / Filtered Lookup  |    244.87 |   243.77 |   301.00 |   251.19 |
+===========================================================================
+
+[Indexed Properties on Platform]
+ - :Paper(id) -> Unique Constraint / Primary B-tree Index
+
+---------------------------------------------------------------------------
+
+STEP 4: HOP TRAVERSALS...
+Connected. Sampling candidate start nodes...
+Prepared 25 dedicated warmup nodes and 100 distinct evaluation start nodes.
+
+Benchmarking: 1-Hop Traversal (100 iterations)...
+Benchmarking: 2-Hop Traversal (100 iterations)...
+Benchmarking: 3-Hop Traversal (100 iterations)...
+
+===================================================================================
+                         TRAVERSAL LATENCY BENCHMARK REPORT                        
+===================================================================================
+| Workload        | Avg Result Count | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+-----------------------------------------------------------------------------------
+| 1-Hop Traversal |             14.2 |    213.66 |   250.97 |   308.39 |   257.07 |
+| 2-Hop Traversal |            155.4 |    217.50 |   214.15 |   305.59 |   254.42 |
+| 3-Hop Traversal |            785.9 |    330.90 |   219.49 |   733.54 |   338.97 |
+===================================================================================
+
+---------------------------------------------------------------------------
+
+STEP 5: AGGREGATIONS & GROUP-BY...
+Connected to database.
+
+Benchmarking: Label Count (All :Paper) (25 warmups, 100 iterations)...
+Benchmarking: Rel Count (All :CITES) (25 warmups, 100 iterations)...
+Benchmarking: Group-By In-Degree (Top Cited) (25 warmups, 100 iterations)...
+Benchmarking: Degree Distribution (Histogram) (25 warmups, 100 iterations)...
+
+================================================================================
+                    AGGREGATION & GROUP-BY BENCHMARK REPORT                     
+================================================================================
+| Workload                        | Cold (ms) | p50 (ms) | p95 (ms) | Avg (ms) |
+--------------------------------------------------------------------------------
+| Label Count (All :Paper)        |    211.28 |   211.23 |   213.41 |   211.99 |
+| Rel Count (All :CITES)          |    210.73 |   211.41 |   212.93 |   211.70 |
+| Group-By In-Degree (Top Cited)  |   3815.30 |  3618.08 |  3755.97 |  3609.46 |
+| Degree Distribution (Histogram) |   3944.59 |  3968.24 |  4135.53 |  3979.29 |
+================================================================================
+
+---------------------------------------------------------------------------
+
+STEP 6: CONCURRENT MIXED WORKLOAD...
+Connected to database. Sampling candidate Paper IDs...
+
+--- Testing: 10 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 915 queries (725 reads, 190 writes)
+Throughput : 45.20 queries/sec (QPS)
+Latency    : p50: 209.13 ms | p95: 222.57 ms | Avg: 219.82 ms
+
+--- Testing: 20 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 1,846 queries (1,464 reads, 382 writes)
+Throughput : 91.29 queries/sec (QPS)
+Latency    : p50: 209.97 ms | p95: 228.26 ms | Avg: 217.94 ms
+
+--- Testing: 40 Concurrent Clients (80/20 R/W Mix) for 20s ---
+Completed  : 3,637 queries (2,883 reads, 754 writes)
+Throughput : 179.85 queries/sec (QPS)
+Latency    : p50: 212.52 ms | p95: 240.35 ms | Avg: 221.17 ms
+
+================================================================
+        MIXED WORKLOAD BENCHMARK (80% READ / 20% WRITE)         
+================================================================
+| Concurrency | Sustained QPS | p50 (ms) | p95 (ms) | Avg (ms) |
+----------------------------------------------------------------
+| 10 clients  |         45.20 |   209.13 |   222.57 |   219.82 |
+| 20 clients  |         91.29 |   209.97 |   228.26 |   217.94 |
+| 40 clients  |        179.85 |   212.52 |   240.35 |   221.17 |
+================================================================
+
+---------------------------------------------------------------------------
+
+
+###########################################################################
+      BENCHMARK SUITE COMPLETE — COGNODB
+###########################################################################
+  ✓  Step 1: DATA INGESTION                           [PASSED]
+  ✓  Step 2: DATABASE FOOTPRINT & RESOURCES           [PASSED]
+  ✓  Step 3: LOOKUPS                                  [PASSED]
+  ✓  Step 4: HOP TRAVERSALS                           [PASSED]
+  ✓  Step 5: AGGREGATIONS & GROUP-BY                  [PASSED]
+  ✓  Step 6: CONCURRENT MIXED WORKLOAD                [PASSED]
+
+  6/6 steps passed.
+  All steps passed.
+###########################################################################

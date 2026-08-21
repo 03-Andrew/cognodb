@@ -1,0 +1,16 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: falkordb
+    ports:
+      - "6379:6379"
+      - "7687:7687"
+      - "3000:3000"
+    environment:
+      REDIS_ARGS: "--requirepass falkordb"
+
+      FALKORDB_ARGS: "TIMEOUT 30000"
+    
+
+volumes:
+  falkordb_data:
